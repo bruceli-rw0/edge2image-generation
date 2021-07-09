@@ -1,2 +1,3 @@
 data/*
 edges/*
+*.ipynb_checkpoints*
