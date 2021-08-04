@@ -52,7 +52,7 @@ download-data:
 	rm ./datasets/lhq1024.tar.gz
 
 .PHONY: download-data-sample
-download-data:
+download-data-sample:
 	if test -d datasets; \
 	then echo "datasets already exist."; \
 	else mkdir datasets; \
