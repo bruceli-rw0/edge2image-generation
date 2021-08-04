@@ -20,7 +20,7 @@ def inference(args, dataloader, model, e) -> None:
             reals.append((inputs['B'].squeeze().numpy().transpose(1,2,0)+1) / 2)
             fakes.append((fake.squeeze().numpy().transpose(1,2,0)+1) / 2)
             paths += inputs['A_paths']
-        save_generations(edges, reals, fakes, paths, args.eval_result, e)
+        save_generations(edges, reals, fakes, paths, args.eval_result, str(e))
 
 def train(args, dataloader, model, metrics) -> None:
     model.train()

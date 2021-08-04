@@ -23,6 +23,6 @@ def save_generations(
         file_name = os.path.normpath(path).split(os.sep)[-1]
         if dataset_name not in os.listdir(save_dir):
             os.mkdir(os.path.join(save_dir, dataset_name))
-        if str(epoch) not in os.listdir(os.path.join(save_dir, dataset_name)):
+        if epoch not in os.listdir(os.path.join(save_dir, dataset_name)):
             os.mkdir(os.path.join(save_dir, dataset_name, epoch))
         fig.savefig(os.path.join(save_dir, dataset_name, epoch, file_name), bbox_inches='tight')
