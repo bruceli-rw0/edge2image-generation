@@ -1,7 +1,14 @@
 import os
 import matplotlib.pyplot as plt
 
-def save_generations(edges: list, reals: list, fakes: list, paths: list, save_dir: str) -> None:
+def save_generations(
+    edges: list, 
+    reals: list, 
+    fakes: list, 
+    paths: list, 
+    save_dir: str,
+    epoch: int
+) -> None:
     if save_dir not in os.listdir():
         os.mkdir(save_dir)
 
@@ -16,4 +23,6 @@ def save_generations(edges: list, reals: list, fakes: list, paths: list, save_di
         file_name = os.path.normpath(path).split(os.sep)[-1]
         if dataset_name not in os.listdir(save_dir):
             os.mkdir(os.path.join(save_dir, dataset_name))
-        fig.savefig(os.path.join(save_dir, dataset_name, file_name), bbox_inches='tight')
+        if str(epoch) not in os.listdir(os.path.join(save_dir, dataset_name)):
+            os.mkdir(os.path.join(save_dir, dataset_name, epoch))
+        fig.savefig(os.path.join(save_dir, dataset_name, epoch, file_name), bbox_inches='tight')

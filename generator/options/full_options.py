@@ -114,9 +114,9 @@ class FullOptions():
         parser.add_argument('--eval_folder', type=str, default=['datasets/edges2shoes/val'], nargs='+', help='Directory of evaluation data.')
         parser.add_argument('--eval_result', type=str, default='results', help='Where to save the inference output')
 
-        parser.add_argument("--verbose_log", action='store_true')
-        parser.add_argument("--save_log", action='store_true')
         parser.add_argument("--save_stats", action='store_true')
+        parser.add_argument("--save_log", action='store_true')
+        parser.add_argument("--verbose_log", action='store_true')
         # parser.add_argument("--save_model", action='store_true')
         
         self.initialized = True

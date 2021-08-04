@@ -6,7 +6,7 @@ from .models.pix2pix_model import Pix2Pix
 from .metrics import Metrics
 from .visualizer import save_generations
 
-def inference(args, dataloader, model):
+def inference(args, dataloader, model, e) -> None:
     edges = list()
     reals = list()
     fakes = list()
@@ -20,9 +20,9 @@ def inference(args, dataloader, model):
             reals.append((inputs['B'].squeeze().numpy().transpose(1,2,0)+1) / 2)
             fakes.append((fake.squeeze().numpy().transpose(1,2,0)+1) / 2)
             paths += inputs['A_paths']
-        save_generations(edges, reals, fakes, paths, args.eval_result)  
+        save_generations(edges, reals, fakes, paths, args.eval_result, e)
 
-def train(args, dataloader, model, metrics):
+def train(args, dataloader, model, metrics) -> None:
     model.train()
     for inputs in tqdm(dataloader):
         model.set_input(inputs)
@@ -33,7 +33,7 @@ def train(args, dataloader, model, metrics):
     print(f"G loss: {loss_G}")
     print(f"D loss: {loss_D}")
 
-def run_model(args):
+def run_model(args) -> None:
     dataset = dict()
     dataloader = dict()
 
@@ -57,5 +57,5 @@ def run_model(args):
         if args.do_train:
             train(args, dataloader["train"], model, metrics['train'])
         if args.do_eval:
-            inference(args, dataloader["eval"], model)
+            inference(args, dataloader["eval"], model, e)
         metrics['train'].new_epoch()
