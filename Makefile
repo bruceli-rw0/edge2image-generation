@@ -1,8 +1,12 @@
 .PHONY: setup
 setup:
-	python3 -m venv env
-	./env/bin/python3 -m pip install --upgrade pip
-	./env/bin/python3 -m pip install -r requirements.txt	
+	if test -d env; \
+	then echo "env already exist; update requirements only"; \
+		./env/bin/python3 -m pip install -r requirements.txt; \
+	else python3 -m venv env; \
+		./env/bin/python3 -m pip install --upgrade pip; \
+		./env/bin/python3 -m pip install -r requirements.txt; \
+	fi	
 
 .PHONY: test
 test:
@@ -11,8 +15,11 @@ test:
 		--model pix2pix \
 		--init_type kaiming \
 		--use_dropout \
+		--n_epochs 1 \
 		--do_train \
-		--num_train 3
+		--do_eval \
+		--num_train 3 \
+		--num_eval 3 \
 
 .PHONY: download-model
 download-model:

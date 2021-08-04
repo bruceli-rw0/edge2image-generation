@@ -3,6 +3,16 @@ from torch import nn
 from .base_model import BaseModel
 from . import networks
 
+class Optimizer():
+    def __init__(self, args):
+        pass
+
+    def zero_grad(self):
+        pass
+
+    def step(self):
+        pass
+
 class Pix2Pix(BaseModel, nn.Module):
     """ This class implements the pix2pix model, for learning a mapping from input images to output images given paired data.
 
@@ -68,8 +78,8 @@ class Pix2Pix(BaseModel, nn.Module):
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-            self.optimizers.append(self.optimizer_G)
-            self.optimizers.append(self.optimizer_D)
+            # self.optimizers.append(self.optimizer_G)
+            # self.optimizers.append(self.optimizer_D)
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
@@ -110,11 +120,13 @@ class Pix2Pix(BaseModel, nn.Module):
     def forward(self):
         """Run forward pass; called by both functions <optimize_parameters> and <test>."""
         self.fake_B = self.netG(self.real_A)  # G(A)
+        return self.fake_B
 
     def backward_D(self):
         """Calculate GAN loss for the discriminator"""
         # Fake; stop backprop to the generator by detaching fake_B
-        fake_AB = torch.cat((self.real_A, self.fake_B), 1)  # we use conditional GANs; we need to feed both input and output to the discriminator
+        # we use conditional GANs; we need to feed both input and output to the discriminator
+        fake_AB = torch.cat((self.real_A, self.fake_B), 1)
         pred_fake = self.netD(fake_AB.detach())
         self.loss_D_fake = self.criterionGAN(pred_fake, False)
         
@@ -155,3 +167,16 @@ class Pix2Pix(BaseModel, nn.Module):
         self.optimizer_G.zero_grad()        # set G's gradients to zero
         self.backward_G()                   # calculate graidents for G
         self.optimizer_G.step()             # udpate G's weights
+
+    # def forward(self, edges):
+    #     return self.netG(edges)
+
+    # def backward(self):
+    #     pass
+
+    # def optimizers_zero_grad(self):
+    #     self.optimizer_D.zero_grad()
+    #     self.optimizer_G.zero_grad()
+
+    # def optimizers_step(self):
+    #     pass

@@ -5,13 +5,13 @@ from PIL import Image
 from torchvision import transforms
 
 class CustomDataset(data.Dataset):
-    def __init__(self, args):
+    def __init__(self, folder, num_data):
         super().__init__()
 
         self.edges_and_images = list()
 
-        assert len(args.train_folder)
-        for data_folder in args.train_folder:
+        assert len(folder)
+        for data_folder in folder:
             assert os.path.exists(data_folder)
             components = os.path.normpath(data_folder).split(os.sep)
 
@@ -27,12 +27,13 @@ class CustomDataset(data.Dataset):
                         sorted(glob(os.path.join(data_folder, "images", "*.png")))
                     )]
 
-        if args.num_train != -1:
-            self.edges_and_images = self.edges_and_images[:args.num_train]
+        if num_data != -1:
+            self.edges_and_images = self.edges_and_images[:num_data]
         
         self.transform = transforms.Compose([
             transforms.Resize(256),
-            transforms.ToTensor()
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
 
     def __len__(self):
