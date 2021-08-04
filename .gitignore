@@ -1,3 +1,8 @@
-data/*
-edges/*
 *.ipynb_checkpoints*
+*__pycache__*
+datasets/*
+env/*
+fourthbrain/*
+generator/sources/*
+literatures/*
+vscode.code-workspace
