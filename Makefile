@@ -50,3 +50,15 @@ download-data:
 		 -O ./datasets/lhq1024.tar.gz
 	tar -zxvf ./datasets/lhq1024.tar.gz -C ./datasets
 	rm ./datasets/lhq1024.tar.gz
+
+.PHONY: download-data-sample
+download-data:
+	if test -d datasets; \
+	then echo "datasets already exist."; \
+	else mkdir datasets; \
+	fi
+
+	wget -N http://efrosgans.eecs.berkeley.edu/pix2pix/datasets/edges2shoes.tar.gz \
+		 -O ./datasets/edges2shoes.tar.gz
+	tar -zxvf ./datasets/edges2shoes.tar.gz -C ./datasets
+	rm ./datasets/edges2shoes.tar.gz
