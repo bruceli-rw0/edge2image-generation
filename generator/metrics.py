@@ -1,3 +1,5 @@
+import os
+import pickle
 import numpy as np
 
 class Metrics:
@@ -25,3 +27,10 @@ class Metrics:
         # clear epoch loss
         self.epoch_loss_G.clear()
         self.epoch_loss_D.clear()
+
+    def save(self, model_id: str):
+        with open(os.path.join('_metrics', f'metrics{model_id}'), 'wb') as f:
+            pickle.dump({
+                'loss_G': self.running_loss_G,
+                'loss_D': self.running_loss_D
+            }, f)

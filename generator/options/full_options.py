@@ -106,13 +106,13 @@ class FullOptions():
         #--------------------------- new parameters ---------------------------#
         #----------------------------------------------------------------------#
         parser.add_argument('--do_train', action='store_true', help='Train model.')
-        parser.add_argument('--do_eval', action='store_true', help='Generate images during each evaluation step.')
+        parser.add_argument('--do_eval', action='store_true', help='Generate images after each training epoch.')
         
         parser.add_argument('--num_train', type=int, default=9, help='Number of images used for training, -1 means use all.')
         parser.add_argument('--num_eval', type=int, default=3, help='Number of images used for evalutation, -1 means use all.')
         parser.add_argument("--train_folder", type=str, default=["datasets/edges2shoes/train"], nargs='+', help='Directory of training data.')
         parser.add_argument('--eval_folder', type=str, default=['datasets/edges2shoes/val'], nargs='+', help='Directory of evaluation data.')
-        parser.add_argument('--eval_result', type=str, default='results', help='Where to save the inference output')
+        parser.add_argument('--eval_result', type=str, default='_results', help='Where to save the inference output')
 
         parser.add_argument("--save_stats", action='store_true')
         parser.add_argument("--save_log", action='store_true')

@@ -1,4 +1,7 @@
+import os
 from tqdm import tqdm
+from time import gmtime, strftime, localtime
+
 import torch
 from torch.utils import data
 from .datasets import CustomDataset
@@ -20,27 +23,33 @@ def inference(args, dataloader, model, e) -> None:
             reals.append((inputs['B'].squeeze().numpy().transpose(1,2,0)+1) / 2)
             fakes.append((fake.squeeze().numpy().transpose(1,2,0)+1) / 2)
             paths += inputs['A_paths']
-        save_generations(edges, reals, fakes, paths, args.eval_result, str(e))
+        save_generations(args, edges, reals, fakes, paths, str(e))
 
-def train(args, dataloader, model, metrics) -> None:
+def train(args, dataloader, model, metrics, e) -> None:
     model.train()
     for inputs in tqdm(dataloader):
         model.set_input(inputs)
         model.optimize_parameters()
         metrics.update(model.loss_G.detach().numpy(), model.loss_D.detach().numpy())
-    loss_G, loss_D = metrics.get_epoch_loss()
     
-    print(f"G loss: {loss_G}")
-    print(f"D loss: {loss_D}")
+    loss_G, loss_D = metrics.get_epoch_loss()
+    print(f"Epoch {e}")
+    print(f"\t G loss: {loss_G:.4f}", end='')
+    print(f"\t D loss: {loss_D:.4f}")
+    metrics.new_epoch()
+    metrics.save(args.model_id)
 
 def run_model(args) -> None:
+    # unique identification
+    args.model_id = strftime("-%Y-%m-%d-%H-%M-%S", localtime())
+
     dataset = dict()
     dataloader = dict()
 
     # load data
     dataset["train"] = CustomDataset(args.train_folder, args.num_train)
-    dataloader["train"] = data.DataLoader(dataset["train"], batch_size=args.batch_size, shuffle=True)
     dataset["eval"] = CustomDataset(args.eval_folder, args.num_eval)
+    dataloader["train"] = data.DataLoader(dataset["train"], batch_size=args.batch_size, shuffle=True)
     dataloader["eval"] = data.DataLoader(dataset["eval"], batch_size=1, shuffle=False)
 
     print(f"Number of training: {len(dataloader['train'])}")
@@ -53,9 +62,30 @@ def run_model(args) -> None:
     metrics = dict()
     metrics['train'] = Metrics(len(dataset["train"]))
 
+    if args.do_train:
+        if '_checkpoints' not in os.listdir():
+            os.mkdir('_checkpoints')
+        os.mkdir(os.path.join('_checkpoints', f'{args.model}{args.model_id}'))
+
+        if '_metrics' not in os.listdir():
+            os.mkdir('_metrics')
+
     for e in tqdm(range(args.n_epochs)):
         if args.do_train:
-            train(args, dataloader["train"], model, metrics['train'])
+            train(args, dataloader["train"], model, metrics['train'], e)
+
+            # save epoch checkpoint
+            torch.save(
+                model.state_dict(), 
+                os.path.join('_checkpoints', f'{args.model}{args.model_id}', f'state_dict-{e}.pth')
+            )
+
         if args.do_eval:
             inference(args, dataloader["eval"], model, e)
-        metrics['train'].new_epoch()
+
+        # model.load_state_dict(
+        #     torch.load(
+        #         os.path.join('_checkpoints', f'{args.model}{args.model_id}', f'state_dict-{e}.pth')
+        #     ))
+
+

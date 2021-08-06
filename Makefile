@@ -69,3 +69,7 @@ download-data-sample:
 		 -O ./datasets/edges2shoes.tar.gz
 	tar -zxvf ./datasets/edges2shoes.tar.gz -C ./datasets
 	rm ./datasets/edges2shoes.tar.gz
+
+.PHONY: clean
+clean:
+	rm -rf _checkpoints _results _metrics

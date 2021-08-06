@@ -26,17 +26,20 @@ class BaseModel(ABC):
             -- self.loss_names (str list):          specify the training losses that you want to plot and save.
             -- self.model_names (str list):         define networks used in our training.
             -- self.visual_names (str list):        specify the images that you want to display and save.
-            -- self.optimizers (optimizer list):    define and initialize optimizers. You can define one optimizer for each network. 
-                                                    If two networks are updated at the same time, you can use itertools.chain to group them. 
+            -- self.optimizers (optimizer list):    define and initialize optimizers. You can define one optimizer 
+                                                    for each network. If two networks are updated at the same time, 
+                                                    you can use itertools.chain to group them. 
                                                     See cycle_gan_model.py for an example.
         """
         self.opt = opt
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.do_train
-        # self.device = torch.device('cuda:{}'.format(self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')  # get device name: CPU or GPU
-        self.device = torch.device('cpu')
-        self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)  # save all the checkpoints to save_dir
-        if opt.preprocess != 'scale_width':  # with [scale_width], input images might have different sizes, which hurts the performance of cudnn.benchmark.
+        # get device name: CPU or GPU
+        self.device = torch.device(f'cuda:{self.gpu_ids[0]}') if self.gpu_ids else torch.device('cpu')
+        # save all the checkpoints to save_dir
+        self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
+        # with [scale_width], input images might have different sizes, which hurts the performance of cudnn.benchmark.
+        if opt.preprocess != 'scale_width':
             torch.backends.cudnn.benchmark = True
         self.loss_names = []
         self.model_names = []
@@ -50,8 +53,9 @@ class BaseModel(ABC):
         """Add new model-specific options, and rewrite default values for existing options.
 
         Parameters:
-            parser          -- original option parser
-            is_train (bool) -- whether training phase or test phase. You can use this flag to add training-specific or test-specific options.
+            parser          --  original option parser
+            is_train (bool) --  whether training phase or test phase. You can use this flag to add 
+                                training-specific or test-specific options.
 
         Returns:
             the modified parser.
@@ -128,7 +132,10 @@ class BaseModel(ABC):
         print('learning rate %.7f -> %.7f' % (old_lr, lr))
 
     def get_current_visuals(self):
-        """Return visualization images. train.py will display these images with visdom, and save the images to a HTML"""
+        """
+            Return visualization images. train.py will display these images with 
+            visdom, and save the images to a HTML
+        """
         visual_ret = OrderedDict()
         for name in self.visual_names:
             if isinstance(name, str):
@@ -136,11 +143,15 @@ class BaseModel(ABC):
         return visual_ret
 
     def get_current_losses(self):
-        """Return traning losses / errors. train.py will print out these errors on console, and save them to a file"""
+        """
+            Return traning losses / errors. train.py will print out these errors 
+            on console, and save them to a file
+        """
         errors_ret = OrderedDict()
         for name in self.loss_names:
             if isinstance(name, str):
-                errors_ret[name] = float(getattr(self, 'loss_' + name))  # float(...) works for both scalar tensor and float number
+                # float(...) works for both scalar tensor and float number
+                errors_ret[name] = float(getattr(self, 'loss_' + name))
         return errors_ret
 
     def save_networks(self, epoch):
