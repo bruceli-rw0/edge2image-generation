@@ -1,5 +1,5 @@
 import os
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from time import gmtime, strftime, localtime
 
 import torch
@@ -37,7 +37,7 @@ def train(args, dataloader, model, metrics, e) -> None:
     print(f"\t G loss: {loss_G:.4f}", end='')
     print(f"\t D loss: {loss_D:.4f}")
     metrics.new_epoch()
-    metrics.save(args.model_id)
+    metrics.save(args)
 
 def run_model(args) -> None:
     # unique identification
@@ -63,21 +63,21 @@ def run_model(args) -> None:
     metrics['train'] = Metrics(len(dataset["train"]))
 
     if args.do_train:
-        if '_checkpoints' not in os.listdir():
-            os.mkdir('_checkpoints')
-        os.mkdir(os.path.join('_checkpoints', f'{args.model}{args.model_id}'))
+        if args.checkpoint_dir not in os.listdir(args.root_dir):
+            os.mkdir(os.path.join(args.root_dir, args.checkpoint_dir))
+        os.mkdir(os.path.join(args.root_dir, args.checkpoint_dir, f'{args.model}{args.model_id}'))
 
-        if '_metrics' not in os.listdir():
-            os.mkdir('_metrics')
+        if args.metrics_dir not in os.listdir(args.root_dir):
+            os.mkdir(os.path.join(args.root_dir, args.metrics_dir))
 
-    for e in tqdm(range(args.n_epochs)):
+    for e in tqdm(range(1, args.n_epochs+1)):
         if args.do_train:
             train(args, dataloader["train"], model, metrics['train'], e)
 
             # save epoch checkpoint
             torch.save(
                 model.state_dict(), 
-                os.path.join('_checkpoints', f'{args.model}{args.model_id}', f'state_dict-{e}.pth')
+                os.path.join(args.root_dir, args.checkpoint_dir, f'{args.model}{args.model_id}', f'state_dict-{e}.pth')
             )
 
         if args.do_eval:
@@ -85,7 +85,5 @@ def run_model(args) -> None:
 
         # model.load_state_dict(
         #     torch.load(
-        #         os.path.join('_checkpoints', f'{args.model}{args.model_id}', f'state_dict-{e}.pth')
+        #         os.path.join(args.checkpoint_dir, f'{args.model}{args.model_id}', f'state_dict-{e}.pth')
         #     ))
-
-

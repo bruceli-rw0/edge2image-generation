@@ -9,8 +9,8 @@ def save_generations(
     paths: list, 
     epoch: str
 ) -> None:
-    if args.eval_result not in os.listdir():
-        os.mkdir(args.eval_result)
+    if args.results_dir not in os.listdir(args.root_dir, ):
+        os.mkdir(os.path.join(args.root_dir, args.results_dir))
 
     for edge, real, fake, path in zip(edges, reals, fakes, paths):
         fig, axes = plt.subplots(nrows=1, ncols=3)
@@ -21,9 +21,9 @@ def save_generations(
 
         dataset_name = os.path.normpath(path).split(os.sep)[1] + args.model_id
         file_name = os.path.normpath(path).split(os.sep)[-1]
-        if dataset_name not in os.listdir(args.eval_result):
-            os.mkdir(os.path.join(args.eval_result, dataset_name))
-        if epoch not in os.listdir(os.path.join(args.eval_result, dataset_name)):
-            os.mkdir(os.path.join(args.eval_result, dataset_name, epoch))
+        if dataset_name not in os.listdir(os.path.join(args.root_dir, args.results_dir)):
+            os.mkdir(os.path.join(args.root_dir, args.results_dir, dataset_name))
+        if epoch not in os.listdir(os.path.join(args.root_dir, args.results_dir, dataset_name)):
+            os.mkdir(os.path.join(args.root_dir, args.results_dir, dataset_name, epoch))
         
-        fig.savefig(os.path.join(args.eval_result, dataset_name, epoch, file_name), bbox_inches='tight')
+        fig.savefig(os.path.join(args.root_dir, args.results_dir, dataset_name, epoch, file_name), bbox_inches='tight')

@@ -12,6 +12,7 @@ setup:
 test:
 	clear
 	./env/bin/python3 -m generator \
+		--config config/pix2pix.yaml \
 		--model pix2pix \
 		--init_type kaiming \
 		--use_dropout \
