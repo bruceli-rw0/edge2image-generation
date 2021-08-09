@@ -1,25 +1,22 @@
 # Edge2Pic
----
-## Installation
-### Download pretrained models
-```bash
-make download-model
-```
 
+## Installation
 ### Download datasets
 ```bash
 make download-data
 ```
 
----
 ## Usage
----
-## Resource
-* [Official PyTorch Pix2Pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix)
-* [Pix2Pix](https://github.com/NVIDIA/pix2pixHD)
+```bash
+make test
+```
 
----
-## Datasets
+## Resource
+### Models
+* [Official PyTorch Pix2Pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix)
+* [Pix2PixHD](https://github.com/NVIDIA/pix2pixHD)
+
+### Datasets
 * Edges2shoes: https://www.kaggle.com/balraj98/edges2shoes-dataset
 * Edges2handbags
 
@@ -34,7 +31,6 @@ Other Style
 ### Edge Detection
 * https://github.com/s9xie/hed
 
----
 ## Proposal Feedback
 * New intro
 * Problem statement
