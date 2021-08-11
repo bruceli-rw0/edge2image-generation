@@ -23,7 +23,7 @@ class FullOptions():
         # parser.add('--dataroot', required=True, help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
         parser.add('--name', type=str, default='experiment_name', help='name of the experiment. It decides where to store samples and models')
         parser.add('--gpu_ids', type=int, default=[], nargs='+', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
-        parser.add('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
+        parser.add('--checkpoints_dir', type=str, default='checkpoints', help='models are saved here')
         
         # model parameters
         parser.add('--model', type=str, default='cycle_gan', help='chooses which model to use. [cycle_gan | pix2pix | test | colorization]')
@@ -40,7 +40,7 @@ class FullOptions():
         parser.add('--use_dropout', action='store_true', help='use dropout for the generator')
         
         # dataset parameters
-        parser.add('--direction', type=str, default='BtoA', help='AtoB or BtoA')
+        parser.add('--direction', type=str, default='AtoB', help='AtoB or BtoA')
         parser.add('--dataset_mode', type=str, default='unaligned', help='chooses how datasets are loaded. [unaligned | aligned | single | colorization]')
         parser.add('--serial_batches', action='store_true', help='if true, takes images in order to make batches, otherwise takes them randomly')
         parser.add('--num_threads', default=4, type=int, help='# threads for loading data')
@@ -88,8 +88,8 @@ class FullOptions():
         parser.add('--lr_decay_iters', type=int, default=50, help='multiply by a gamma every lr_decay_iters iterations')
 
         # inference parameters
-        # parser.add('--results_dir', type=str, default='./results/', help='saves results here.')
         parser.add('--aspect_ratio', type=float, default=1.0, help='aspect ratio of result images')
+        # parser.add('--results_dir', type=str, default='./results/', help='saves results here.')
         # parser.add('--phase', type=str, default='test', help='train, val, test, etc')
         
         # Dropout and Batchnorm has different behavior during training and test.
@@ -119,10 +119,11 @@ class FullOptions():
         parser.add('--checkpoint_dir', type=str, default='_checkpoints')
         parser.add('--metrics_dir', type=str, default='_metrics')
         parser.add('--results_dir', type=str, default='_results')
+        parser.add('--log_dir', type=str, default='_loggings')
 
-        parser.add("--save_stats", action='store_true')
-        parser.add("--save_log", action='store_true')
-        parser.add("--verbose_log", action='store_true')
+        # parser.add("--save_stats", action='store_true')
+        # parser.add("--save_log", action='store_true')
+        # parser.add("--verbose_log", action='store_true')
         # parser.add("--save_model", action='store_true')
         
         self.initialized = True
@@ -146,9 +147,10 @@ class FullOptions():
 
         # modify model-related parser options
         model_name = args.model
+        # get modify_commandline_options function
         model_option_setter = models.get_option_setter(model_name)
         parser = model_option_setter(parser, args.do_train)
-        args, _ = parser.parse_known_args()  # parse again with new defaults
+        # args, _ = parser.parse_known_args()  # parse again with new defaults
 
         # modify dataset-related parser options
         # dataset_name = opt.dataset_mode
@@ -159,31 +161,6 @@ class FullOptions():
         self.parser = parser
         return parser.parse_args()
 
-    # def print_options(self, opt):
-    #     """Print and save options
-
-    #     It will print both current options and default values(if different).
-    #     It will save options into a text file / [checkpoints_dir] / opt.txt
-    #     """
-    #     message = ''
-    #     message += '----------------- Options ---------------\n'
-    #     for k, v in sorted(vars(opt).items()):
-    #         comment = ''
-    #         default = self.parser.get_default(k)
-    #         if v != default:
-    #             comment = '\t[default: %s]' % str(default)
-    #         message += '{:>25}: {:<30}{}\n'.format(str(k), str(v), comment)
-    #     message += '----------------- End -------------------'
-    #     print(message)
-
-    #     # save to the disk
-    #     expr_dir = os.path.join(opt.checkpoints_dir, opt.name)
-    #     util.mkdirs(expr_dir)
-    #     file_name = os.path.join(expr_dir, '{}_opt.txt'.format(opt.phase))
-    #     with open(file_name, 'wt') as opt_file:
-    #         opt_file.write(message)
-    #         opt_file.write('\n')
-
     def parse(self):
         """Parse our options, create checkpoints directory suffix, and set up gpu device."""
         args = self.gather_options()
@@ -192,7 +169,6 @@ class FullOptions():
         if args.suffix:
             suffix = ('_' + args.suffix.format(**vars(args))) if args.suffix != '' else ''
             args.name = args.name + suffix
-        # self.print_options(args)
 
         # set gpu ids
         if len(args.gpu_ids) > 0 and torch.cuda.is_available():

@@ -3,16 +3,6 @@ from torch import nn
 from .base_model import BaseModel
 from . import networks
 
-class Optimizer():
-    def __init__(self, args):
-        pass
-
-    def zero_grad(self):
-        pass
-
-    def step(self):
-        pass
-
 class Pix2Pix(BaseModel, nn.Module):
     """ This class implements the pix2pix model, for learning a mapping from input images to output images given paired data.
 
@@ -23,6 +13,31 @@ class Pix2Pix(BaseModel, nn.Module):
 
     pix2pix paper: https://arxiv.org/pdf/1611.07004.pdf
     """
+    @staticmethod
+    def modify_commandline_options(parser, is_train=True):
+        """
+        Add new dataset-specific options, and rewrite default values for existing options.
+
+        Parameters:
+            parser          --  original option parser
+            is_train (bool) --  whether training phase or test phase. You can use 
+                                this flag to add training-specific or test-specific options.
+
+        Returns:
+            the modified parser.
+
+        For pix2pix, we do not use image buffer
+        The training objective is: GAN Loss + lambda_L1 * ||G(A)-B||_1
+        By default, we use vanilla GAN loss, UNet with batchnorm, and aligned datasets.
+        """
+        # print("Modify Pix2Pix2 commandline options ...")
+        # changing the default values to match the pix2pix paper (https://phillipi.github.io/pix2pix/)
+        # parser.set_defaults(norm='batch', netG='unet_256', dataset_mode='aligned')
+        if is_train:
+            # parser.set_defaults(pool_size=0, gan_mode='vanilla')
+            parser.add_argument('--lambda_L1', type=float, default=100.0, help='weight for L1 loss')
+        return parser
+
     def __init__(self, opt):
         """Initialize the pix2pix class.
 
@@ -39,10 +54,9 @@ class Pix2Pix(BaseModel, nn.Module):
         self.visual_names = ['real_A', 'fake_B', 'real_B']
         # specify the models you want to save to the disk. 
         # The training/test scripts will call <BaseModel.save_networks> and <BaseModel.load_networks>
-        if self.isTrain:
-            self.model_names = ['G', 'D']
-        else:  # during test time, only load G
-            self.model_names = ['G']
+        
+        # during test time, only load G
+        self.model_names = ['G', 'D'] if self.isTrain else ['G']
         # define networks (both generator and discriminator)
         self.netG = networks.define_G(
             opt.input_nc, 
@@ -78,31 +92,7 @@ class Pix2Pix(BaseModel, nn.Module):
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-            # self.optimizers.append(self.optimizer_G)
-            # self.optimizers.append(self.optimizer_D)
-
-    @staticmethod
-    def modify_commandline_options(parser, is_train=True):
-        """Add new dataset-specific options, and rewrite default values for existing options.
-
-        Parameters:
-            parser          -- original option parser
-            is_train (bool) -- whether training phase or test phase. You can use this flag to add training-specific or test-specific options.
-
-        Returns:
-            the modified parser.
-
-        For pix2pix, we do not use image buffer
-        The training objective is: GAN Loss + lambda_L1 * ||G(A)-B||_1
-        By default, we use vanilla GAN loss, UNet with batchnorm, and aligned datasets.
-        """
-        print("Modify Pix2Pix2 commandline options ...")
-        # changing the default values to match the pix2pix paper (https://phillipi.github.io/pix2pix/)
-        parser.set_defaults(norm='batch', netG='unet_256', dataset_mode='aligned')
-        if is_train:
-            parser.set_defaults(pool_size=0, gan_mode='vanilla')
-            parser.add_argument('--lambda_L1', type=float, default=100.0, help='weight for L1 loss')
-        return parser
+            self.optimizers = [self.optimizer_G, self.optimizer_D]
 
     def set_input(self, input):
         """Unpack input data from the dataloader and perform necessary pre-processing steps.
@@ -167,16 +157,3 @@ class Pix2Pix(BaseModel, nn.Module):
         self.optimizer_G.zero_grad()        # set G's gradients to zero
         self.backward_G()                   # calculate graidents for G
         self.optimizer_G.step()             # udpate G's weights
-
-    # def forward(self, edges):
-    #     return self.netG(edges)
-
-    # def backward(self):
-    #     pass
-
-    # def optimizers_zero_grad(self):
-    #     self.optimizer_D.zero_grad()
-    #     self.optimizer_G.zero_grad()
-
-    # def optimizers_step(self):
-    #     pass

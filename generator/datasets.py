@@ -24,7 +24,7 @@ class CustomDataset(data.Dataset):
                 self.edges_and_images += \
                     [((edges, image), self._getImageEdgeData) for edges, image in zip(
                         sorted(glob(os.path.join(data_folder, "edges", "*.jpg"))),
-                        sorted(glob(os.path.join(data_folder, "images", "*.png")))
+                        sorted(glob(os.path.join(data_folder, "images", "*.jpg")))
                     )]
 
         if num_data != -1:
@@ -59,4 +59,12 @@ class CustomDataset(data.Dataset):
         }
 
     def _getImageEdgeData(self, path):
-        return
+        pathe, pathi = path
+        edge = Image.open(pathe)
+        image = Image.open(pathi)
+        return {
+            'A': self.transform(edge), 
+            'B': self.transform(image), 
+            'A_paths': pathe, 
+            'B_paths': pathi
+        }

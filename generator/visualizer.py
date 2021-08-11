@@ -27,3 +27,4 @@ def save_generations(
             os.mkdir(os.path.join(args.root_dir, args.results_dir, dataset_name, epoch))
         
         fig.savefig(os.path.join(args.root_dir, args.results_dir, dataset_name, epoch, file_name), bbox_inches='tight')
+        plt.close()
