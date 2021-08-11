@@ -1,12 +1,18 @@
 # Edge2Pic
 
 ## Installation
-### Download datasets
+Run the following command to setup the virtual environment and install the required packages.
 ```bash
-make download-data
+make setup
+```
+
+Run the following command to download the [Kaggle Landscape dataset](https://www.kaggle.com/arnaud58/landscape-pictures) with edge images.
+```bash
+make download
 ```
 
 ## Usage
+Run the following command to perform a test training and evaluation run.
 ```bash
 make test
 ```
@@ -17,6 +23,7 @@ make test
 * [Pix2PixHD](https://github.com/NVIDIA/pix2pixHD)
 
 ### Datasets
+Simple Edges
 * Edges2shoes: https://www.kaggle.com/balraj98/edges2shoes-dataset
 * Edges2handbags
 
@@ -28,14 +35,9 @@ Landscape
 Other Style
 * Abstract painting: https://www.kaggle.com/flash10042/abstract-paintings-dataset
 
-### Edge Detection
-* https://github.com/s9xie/hed
+### Latest Matlab Piotr's Computer Vision Matlab Toolbox
+* https://github.com/jmbuena/toolbox.badacost.public 
 
-## Proposal Feedback
-* New intro
-* Problem statement
-* Applications
-* More motivation
-* Clarify Input + Output
-* AB test may be out of scope if ran out of time
-* Minimal viable product
+## Reference
+* Holistically-Nested Edge Detection: https://github.com/s9xie/hed
+* Holistically-Nested Edge Detection with OpenCV and Deep Learning: https://www.pyimagesearch.com/2019/03/04/holistically-nested-edge-detection-with-opencv-and-deep-learning/

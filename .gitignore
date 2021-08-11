@@ -1,9 +1,8 @@
 *.ipynb_checkpoints*
 *__pycache__*
+vscode.code-workspace
+
 datasets/*
 env/*
 fourthbrain/*
-generator/_data/*
-generator/_sources/*
-literatures/*
-vscode.code-workspace
+references/*
