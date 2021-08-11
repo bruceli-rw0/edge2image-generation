@@ -55,12 +55,11 @@ def inference(args, dataloader, model, e: str) -> None:
     model.eval()
     with torch.no_grad():
         for inputs in epoch_iterator:
-            model.set_input(inputs)
-            fake = model.forward()
+            fake = model(inputs)
             edges.append((inputs['A'].squeeze().numpy().transpose(1,2,0)+1) / 2)
             reals.append((inputs['B'].squeeze().numpy().transpose(1,2,0)+1) / 2)
             fakes.append((fake.detach().cpu().squeeze().numpy().transpose(1,2,0)+1) / 2)
-            paths += inputs['A_paths']
+            paths += inputs['A_path']
         save_generations(args, edges, reals, fakes, paths, e)
     edges = reals = fakes = paths = None
 
@@ -70,7 +69,7 @@ def train(args, dataloader, model, metrics, e: str) -> None:
     epoch_iterator = tqdm(dataloader, desc="Iteration", position=0, leave=True)
     model.train()
     for inputs in epoch_iterator:
-        model.set_input(inputs)
+        _ = model(inputs)
         model.optimize_parameters()
         metrics.update(model.loss_G.item(), model.loss_D.item())
     
@@ -90,8 +89,8 @@ def run_model(args) -> None:
     dataloader = dict()
 
     # load data
-    dataset["train"] = CustomDataset(args.train_folder, args.num_train)
-    dataset["eval"] = CustomDataset(args.eval_folder, args.num_eval)
+    dataset["train"] = CustomDataset(args.train_folder, args.num_train, args.direction)
+    dataset["eval"] = CustomDataset(args.eval_folder, args.num_eval, args.direction)
     dataloader["train"] = data.DataLoader(dataset["train"], batch_size=args.batch_size, shuffle=True)
     dataloader["eval"] = data.DataLoader(dataset["eval"], batch_size=1, shuffle=False)
 

@@ -5,9 +5,10 @@ from PIL import Image
 from torchvision import transforms
 
 class CustomDataset(data.Dataset):
-    def __init__(self, folder, num_data):
+    def __init__(self, folder, num_data, direction):
         super().__init__()
 
+        self.direction = direction
         self.edges_and_images = list()
 
         assert len(folder)
@@ -53,9 +54,12 @@ class CustomDataset(data.Dataset):
         image = AB.crop((w2, 0, w, h))
         return {
             'A': self.transform(edge), 
-            'B': self.transform(image), 
-            'A_paths': path, 
-            'B_paths': path
+            'B': self.transform(image),
+            'A_path': path
+        } if self.direction == 'AtoB' else {
+            'A': self.transform(image), 
+            'B': self.transform(edge),
+            'A_path': path
         }
 
     def _getImageEdgeData(self, path):
@@ -64,7 +68,10 @@ class CustomDataset(data.Dataset):
         image = Image.open(pathi)
         return {
             'A': self.transform(edge), 
-            'B': self.transform(image), 
-            'A_paths': pathe, 
-            'B_paths': pathi
+            'B': self.transform(image),
+            'A_path': pathe
+        } if self.direction == 'AtoB' else {
+            'A': self.transform(image), 
+            'B': self.transform(edge),
+            'A_path': pathi
         }

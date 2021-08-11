@@ -2,7 +2,7 @@ import os
 import warnings
 warnings.filterwarnings("ignore")
 
-from .options.full_options import FullOptions
+from .options import FullOptions
 from .trainer import run_model
 
 def main():

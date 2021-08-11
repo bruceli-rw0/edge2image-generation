@@ -3,7 +3,7 @@ import configargparse
 import os
 import torch
 # from .. import data
-from .. import models
+from . import models
 # from util import util
 
 class FullOptions():
@@ -41,7 +41,7 @@ class FullOptions():
         
         # dataset parameters
         parser.add('--direction', type=str, default='AtoB', help='AtoB or BtoA')
-        parser.add('--dataset_mode', type=str, default='unaligned', help='chooses how datasets are loaded. [unaligned | aligned | single | colorization]')
+        # parser.add('--dataset_mode', type=str, default='aligned', help='chooses how datasets are loaded. [unaligned | aligned | single | colorization]')
         parser.add('--serial_batches', action='store_true', help='if true, takes images in order to make batches, otherwise takes them randomly')
         parser.add('--num_threads', default=4, type=int, help='# threads for loading data')
         parser.add('--load_size', type=int, default=286, help='scale images to this size')
