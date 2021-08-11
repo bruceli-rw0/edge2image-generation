@@ -5,10 +5,10 @@ from PIL import Image
 from torchvision import transforms
 
 class CustomDataset(data.Dataset):
-    def __init__(self, folder, num_data, direction):
+    def __init__(self, folder, num_data, args):
         super().__init__()
 
-        self.direction = direction
+        self.direction = args.direction
         self.edges_and_images = list()
 
         assert len(folder)
@@ -21,7 +21,8 @@ class CustomDataset(data.Dataset):
                     [(path, self._getABImageData) for path in sorted(glob(os.path.join(data_folder, "*.jpg")))]
             
             elif any([f in ["lhq_256", "kaggle_landscape"] for f in components]):
-                assert sorted(glob(os.path.join(data_folder, "*"))) == ["edges", "images"]
+                assert sorted(glob(os.path.join(data_folder, "*s"))) == \
+                    [os.path.join(data_folder, "edges"), os.path.join(data_folder, "images")]
                 self.edges_and_images += \
                     [((edges, image), self._getImageEdgeData) for edges, image in zip(
                         sorted(glob(os.path.join(data_folder, "edges", "*.jpg"))),
@@ -32,7 +33,7 @@ class CustomDataset(data.Dataset):
             self.edges_and_images = self.edges_and_images[:num_data]
         
         self.transform = transforms.Compose([
-            transforms.Resize(256),
+            transforms.Resize(args.load_size),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
@@ -64,8 +65,8 @@ class CustomDataset(data.Dataset):
 
     def _getImageEdgeData(self, path):
         pathe, pathi = path
-        edge = Image.open(pathe)
-        image = Image.open(pathi)
+        edge = Image.open(pathe).convert('RGB')
+        image = Image.open(pathi).convert('RGB')
         return {
             'A': self.transform(edge), 
             'B': self.transform(image),

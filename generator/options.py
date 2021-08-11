@@ -44,7 +44,7 @@ class FullOptions():
         # parser.add('--dataset_mode', type=str, default='aligned', help='chooses how datasets are loaded. [unaligned | aligned | single | colorization]')
         parser.add('--serial_batches', action='store_true', help='if true, takes images in order to make batches, otherwise takes them randomly')
         parser.add('--num_threads', default=4, type=int, help='# threads for loading data')
-        parser.add('--load_size', type=int, default=286, help='scale images to this size')
+        parser.add('--load_size', type=int, default=256, help='scale images to this size')
         parser.add('--crop_size', type=int, default=256, help='then crop to this size')
         parser.add('--max_dataset_size', type=int, default=float("inf"), help='Maximum number of samples allowed per dataset. If the dataset directory contains more than max_dataset_size, only a subset is loaded.')
         parser.add('--preprocess', type=str, default='resize_and_crop', help='scaling and cropping of images at load time [resize_and_crop | crop | scale_width | scale_width_and_crop | none]')

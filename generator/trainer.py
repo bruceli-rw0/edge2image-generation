@@ -89,8 +89,8 @@ def run_model(args) -> None:
     dataloader = dict()
 
     # load data
-    dataset["train"] = CustomDataset(args.train_folder, args.num_train, args.direction)
-    dataset["eval"] = CustomDataset(args.eval_folder, args.num_eval, args.direction)
+    dataset["train"] = CustomDataset(args.train_folder, args.num_train, args)
+    dataset["eval"] = CustomDataset(args.eval_folder, args.num_eval, args)
     dataloader["train"] = data.DataLoader(dataset["train"], batch_size=args.batch_size, shuffle=True)
     dataloader["eval"] = data.DataLoader(dataset["eval"], batch_size=1, shuffle=False)
 
