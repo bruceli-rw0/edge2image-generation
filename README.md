@@ -12,6 +12,25 @@ make download
 ```
 
 ## Usage
+Run the following command to generate edges
+```bash
+./env/bin/python3 hed/python/batch_hed.py \
+    --caffe_root .. \
+    --caffemodel hed/examples/hed_pretrained_bsds.caffemodel \
+    --prototxt hed/examples/deploy.prototxt \
+    --images_dir DIRECTORY_TO_IMAGES \
+    --hed_mat_dir OUTPUT_DIRECTORY
+```
+Then run the following commands in matlab to perform postprocessing
+```matlab
+addpath(genpath('toolbox/')); savepath; toolboxCompile;
+PostprocessHED(
+    PATH_TO_HED_EDGES, 
+    OUTPUT_DIRECTORY, 
+    1024, 25.0/255.0, 5
+)
+```
+
 Run the following command to perform a test training and evaluation run.
 ```bash
 make test
