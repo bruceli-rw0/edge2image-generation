@@ -6,5 +6,3 @@ datasets/*
 env/*
 fourthbrain/*
 references/*
-
-image_processing/hed_pretrained_bsds.caffemodel
