@@ -50,9 +50,9 @@ class BaseModel(ABC):
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.do_train
         # get device name: CPU or GPU
-        self.device = 'cpu'
+        self.device = torch.device('cpu')
         if self.gpu_ids and opt.device == 'gpu' and torch.cuda.is_available():
-            self.device = f'cuda:{self.gpu_ids[0]}'
+            self.device = torch.device(f'cuda:{self.gpu_ids[0]}')
         elif opt.device == 'tpu':
             import torch_xla.core.xla_model as xm
             self.device = xm.xla_device()

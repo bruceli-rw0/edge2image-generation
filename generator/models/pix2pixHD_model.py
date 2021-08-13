@@ -21,7 +21,6 @@ class Pix2PixHD(BaseModel, nn.Module):
         if opt.resize_or_crop != 'none' or not opt.do_train: # when training at full res this causes OOM
             torch.backends.cudnn.benchmark = True
         self.isTrain = opt.do_train
-        self.Tensor = torch.cuda.FloatTensor if self.gpu_ids else torch.Tensor
         self.use_features = opt.use_instance_feat or opt.use_label_feat
         self.gen_features = self.use_features and not self.opt.load_features
         input_nc = opt.label_nc if opt.label_nc != 0 else opt.input_nc
@@ -44,7 +43,8 @@ class Pix2PixHD(BaseModel, nn.Module):
             opt.norm, 
             opt.init_type,
             opt.init_gain,
-            gpu_ids=self.gpu_ids
+            self.device,
+            self.gpu_ids
         )
 
         #--------------------------- Discriminator ----------------------------#
@@ -63,7 +63,8 @@ class Pix2PixHD(BaseModel, nn.Module):
                 opt.init_gain,
                 use_sigmoid, 
                 not opt.no_ganFeat_loss, 
-                gpu_ids=self.gpu_ids
+                self.device,
+                self.gpu_ids
             )
 
         #------------------------------ Encoder -------------------------------#
@@ -77,6 +78,7 @@ class Pix2PixHD(BaseModel, nn.Module):
                 norm=opt.norm, 
                 init_type=opt.init_type,
                 init_gain=opt.init_gain,
+                device=self.device,
                 gpu_ids=self.gpu_ids
             )
 
@@ -89,10 +91,10 @@ class Pix2PixHD(BaseModel, nn.Module):
             self.old_lr = opt.lr
 
             #------------------------ loss functions --------------------------#
-            self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)   
+            self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, device=self.device)   
             self.criterionFeat = torch.nn.L1Loss()
             if not opt.no_vgg_loss:             
-                self.criterionVGG = networks.VGGLoss(self.gpu_ids)
+                self.criterionVGG = networks.VGGLoss(self.device)
 
             #-------------------------- optimizers ----------------------------#
             # optimizer G
@@ -301,7 +303,8 @@ class Pix2PixHD(BaseModel, nn.Module):
 
         # randomly sample from the feature clusters
         inst_np = inst.cpu().numpy().astype(int)
-        feat_map = self.Tensor(inst.size()[0], self.opt.feat_num, inst.size()[2], inst.size()[3])
+        N, _, H, W = inst_np.size()
+        feat_map = torch.FloatTensor(N, self.opt.feat_num, H, W).to(self.device)
         for i in np.unique(inst_np):    
             label = i if i < 1000 else i//1000
             if label in features_clustered:

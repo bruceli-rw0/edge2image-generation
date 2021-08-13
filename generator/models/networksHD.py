@@ -19,22 +19,19 @@ def define_G(
     norm='instance', 
     init_type='normal', 
     init_gain=0.02, 
+    device='cpu',
     gpu_ids=[]
-):    
-    norm_layer = get_norm_layer(norm_type=norm)     
-    if netG == 'global':    
-        netG = GlobalGenerator(input_nc, output_nc, ngf, n_downsample_global, n_blocks_global, norm_layer)       
-    elif netG == 'local':        
+):
+    norm_layer = get_norm_layer(norm_type=norm)
+    if netG == 'global':
+        netG = GlobalGenerator(input_nc, output_nc, ngf, n_downsample_global, n_blocks_global, norm_layer)
+    elif netG == 'local':
         netG = LocalEnhancer(input_nc, output_nc, ngf, n_downsample_global, n_blocks_global, n_local_enhancers, n_blocks_local, norm_layer)
     elif netG == 'encoder':
         netG = Encoder(input_nc, output_nc, ngf, n_downsample_global, norm_layer)
     else:
         raise('generator not implemented!')
-
-    if len(gpu_ids) > 0:
-        assert(torch.cuda.is_available())   
-        netG.cuda(gpu_ids[0])
-    return init_net(netG, init_type, init_gain, gpu_ids)
+    return init_net(netG, init_type, init_gain, device, gpu_ids)
 
 def define_D(
     input_nc, 
@@ -46,28 +43,25 @@ def define_D(
     init_gain=0.02, 
     use_sigmoid=False, 
     getIntermFeat=False, 
-    gpu_ids=[]
-):        
-    norm_layer = get_norm_layer(norm_type=norm)   
-    netD = MultiscaleDiscriminator(input_nc, ndf, n_layers_D, norm_layer, use_sigmoid, num_D, getIntermFeat)   
-
-    if len(gpu_ids) > 0:
-        assert(torch.cuda.is_available())
-        netD.cuda(gpu_ids[0])
-    return init_net(netD, init_type, init_gain, gpu_ids)
+    device='cpu',
+    gpu_ids=[],
+):
+    norm_layer = get_norm_layer(norm_type=norm)
+    netD = MultiscaleDiscriminator(input_nc, ndf, n_layers_D, norm_layer, use_sigmoid, num_D, getIntermFeat)
+    return init_net(netD, init_type, init_gain, device, gpu_ids)
 
 
 ##############################################################################
 # Losses
 ##############################################################################
 class GANLoss(nn.Module):
-    def __init__(self, use_lsgan=True, target_real_label=1.0, target_fake_label=0.0, tensor=torch.FloatTensor):
+    def __init__(self, use_lsgan=True, target_real_label=1.0, target_fake_label=0.0, device=None):
         super(GANLoss, self).__init__()
         self.real_label = target_real_label
         self.fake_label = target_fake_label
         self.real_label_var = None
         self.fake_label_var = None
-        self.Tensor = tensor
+        self.device = device
         self.loss = nn.MSELoss() if use_lsgan else nn.BCELoss()
 
     def forward(self, input, target_is_real):
@@ -87,24 +81,23 @@ class GANLoss(nn.Module):
         if target_is_real:
             create_label = ((self.real_label_var is None) or (self.real_label_var.numel() != input.numel()))
             if create_label:
-                real_tensor = self.Tensor(input.size()).fill_(self.real_label)
+                real_tensor = torch.FloatTensor(input.size()).fill_(self.real_label).to(self.device)
                 self.real_label_var = Variable(real_tensor, requires_grad=False)
             target_tensor = self.real_label_var
         else:
             create_label = ((self.fake_label_var is None) or (self.fake_label_var.numel() != input.numel()))
             if create_label:
-                fake_tensor = self.Tensor(input.size()).fill_(self.fake_label)
+                fake_tensor = torch.FloatTensor(input.size()).fill_(self.fake_label).to(self.device)
                 self.fake_label_var = Variable(fake_tensor, requires_grad=False)
             target_tensor = self.fake_label_var
         return target_tensor
 
 
 class VGGLoss(nn.Module):
-    def __init__(self, gpu_ids):
+    def __init__(self, device):
         super(VGGLoss, self).__init__()
         self.vgg = Vgg19()
-        if gpu_ids:
-            self.vgg = self.vgg.cuda()
+        self.vgg.to(device)
         self.criterion = nn.L1Loss()
         self.weights = [1.0/32, 1.0/16, 1.0/8, 1.0/4, 1.0]        
 

@@ -15,6 +15,7 @@ def define_G(
     use_dropout=False, 
     init_type='normal', 
     init_gain=0.02, 
+    device='cpu',
     gpu_ids=[]
 ):
     """Create a generator
@@ -56,7 +57,7 @@ def define_G(
         net = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % netG)
-    return init_net(net, init_type, init_gain, gpu_ids)
+    return init_net(net, init_type, init_gain, device, gpu_ids)
 
 
 def define_D(
@@ -67,6 +68,7 @@ def define_D(
     norm='batch', 
     init_type='normal', 
     init_gain=0.02, 
+    device='cpu',
     gpu_ids=[]
 ):
     """Create a discriminator
@@ -109,7 +111,7 @@ def define_D(
         net = PixelDiscriminator(input_nc, ndf, norm_layer=norm_layer)
     else:
         raise NotImplementedError('Discriminator model name [%s] is not recognized' % netD)
-    return init_net(net, init_type, init_gain, gpu_ids)
+    return init_net(net, init_type, init_gain, device, gpu_ids)
 
 
 ##############################################################################

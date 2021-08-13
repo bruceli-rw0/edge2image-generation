@@ -71,6 +71,7 @@ class Pix2Pix(BaseModel, nn.Module):
             opt.use_dropout, 
             opt.init_type, 
             opt.init_gain, 
+            self.device,
             self.gpu_ids
         )
 
@@ -85,6 +86,7 @@ class Pix2Pix(BaseModel, nn.Module):
                 opt.norm, 
                 opt.init_type, 
                 opt.init_gain, 
+                self.device,
                 self.gpu_ids
             )
 
