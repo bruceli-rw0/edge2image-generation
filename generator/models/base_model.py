@@ -15,7 +15,6 @@ class BaseModel(ABC):
         -- <optimize_parameters>:           calculate losses, gradients, and update network weights.
         -- <modify_commandline_options>:    (optionally) add model-specific options and set default options.
     """
-
     @staticmethod
     def modify_commandline_options(parser):
         """Add new model-specific options, and rewrite default values for existing options.
@@ -51,7 +50,12 @@ class BaseModel(ABC):
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.do_train
         # get device name: CPU or GPU
-        self.device = torch.device(f'cuda:{self.gpu_ids[0]}') if self.gpu_ids else torch.device('cpu')
+        self.device = 'cpu'
+        if self.gpu_ids and opt.device == 'gpu' and torch.cuda.is_available():
+            self.device = f'cuda:{self.gpu_ids[0]}'
+        elif opt.device == 'tpu':
+            import torch_xla.core.xla_model as xm
+            self.device = xm.xla_device()
         # save all the checkpoints to save_dir
         self.save_dir = os.path.join(opt.root_dir, opt.checkpoints_dir, f'{opt.model}{opt.model_id}')
         # with [scale_width], input images might have different sizes, which hurts 
@@ -61,7 +65,7 @@ class BaseModel(ABC):
         self.loss_names = []
         self.model_names = []
         self.visual_names = []
-        self.optimizers = []
+        self.optimizers = None
         self.schedulers = None
         self.image_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
@@ -132,9 +136,7 @@ class BaseModel(ABC):
                 if isinstance(net, torch.nn.DataParallel):
                     net = net.module
                 print('loading the model from %s' % load_path)
-                # if you are using PyTorch newer than 0.4 (e.g., built from
-                # GitHub source), you can remove str() on self.device
-                state_dict = torch.load(load_path, map_location=str(self.device))
+                state_dict = torch.load(load_path, map_location=self.device)
                 if hasattr(state_dict, '_metadata'):
                     del state_dict._metadata
 
@@ -154,7 +156,7 @@ class BaseModel(ABC):
         save_path = os.path.join(self.save_dir, save_filename)
         torch.save(network.cpu().state_dict(), save_path)
         if len(self.gpu_ids) > 0 and torch.cuda.is_available():
-            network.cuda(self.gpu_ids[0])
+            network.to(self.device)
 
     def __patch_instance_norm_state_dict(self, state_dict, module, keys, i=0):
         """

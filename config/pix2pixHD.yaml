@@ -8,7 +8,7 @@ ngf: 64
 num_D: 3
 ndf: 64
 norm: instance
-init_type: kaiming
+init_type: normal
 init_gain: 0.02
 use_dropout: True
 

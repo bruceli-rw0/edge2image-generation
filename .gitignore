@@ -2,6 +2,7 @@
 *__pycache__*
 vscode.code-workspace
 
+_checkpoints/*
 datasets/*
 env/*
 fourthbrain/*

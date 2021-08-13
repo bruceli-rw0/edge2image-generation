@@ -15,6 +15,7 @@ class BaseOptions():
 
     def initialize(self):
         """Define the common options that are used in both training and test."""
+        device_choices = ['cpu', 'gpu', 'tpu']
         model_choices = ['pix2pix', 'pix2pixHD']
         norm_choices = ['instance', 'batch', 'none']
         init_choices = ['normal', 'xavier', 'kaiming', 'orthogonal']
@@ -24,6 +25,7 @@ class BaseOptions():
         # experiment specifics
         self.parser.add('--config', type=str, required=True, is_config_file=True, help='config file path')
         self.parser.add('--name', type=str, default='experiment_name', help='name of the experiment. It decides where to store samples and models')
+        self.parser.add('--device', type=str, default='cpu', help='device for running model', choices=device_choices)
         self.parser.add('--gpu_ids', type=int, default=[], nargs='+', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         self.parser.add('--root_dir', type=str, default='.', help='root directory for saving log, metrics, results, and checkpoints')
         self.parser.add('--log_dir', type=str, default='_loggings', help='saves logging here')
@@ -124,14 +126,8 @@ class BaseOptions():
             return self.parser.parse_known_args()
         
         args, _ = self.parser.parse_known_args()
-
         # process args.suffix
         if args.suffix:
             suffix = ('_' + args.suffix.format(**vars(args))) if args.suffix != '' else ''
             args.name = args.name + suffix
-
-        # set gpu ids
-        if len(args.gpu_ids) > 0 and torch.cuda.is_available():
-            torch.cuda.set_device(args.gpu_ids[0])
-
         return self.parser.parse_args(), self.parser

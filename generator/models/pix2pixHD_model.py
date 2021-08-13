@@ -123,10 +123,6 @@ class Pix2PixHD(BaseModel, nn.Module):
             self.optimizer_D = torch.optim.Adam(params, lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizers = [self.optimizer_G, self.optimizer_D]
 
-        # load networks
-        # if not self.isTrain or opt.continue_train or opt.load_pretrain:
-        #     self.load(opt)
-
     def forward(self, label, image, inst=None, feat=None) -> torch.Tensor:
         # Encode Inputs
         input_label, real_image, inst_map, feat_map = self.encode_input(label, image, inst, feat)  
@@ -170,12 +166,12 @@ class Pix2PixHD(BaseModel, nn.Module):
         loss_D_real = self.criterionGAN(self.pred_real, target_is_real=True)
         
         self.loss_D = (loss_D_fake + loss_D_real) * 0.5
-        # if self.opt.fp16:
-        #     with amp.scale_loss(self.loss_D, self.optimizer_D) as scaled_loss:
-        #         scaled_loss.backward()
-        # else:
-        #     self.loss_D.backward()
-        self.loss_D.backward()
+        if self.opt.fp16:
+            with amp.scale_loss(self.loss_D, self.optimizer_D) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            self.loss_D.backward()
+        # self.loss_D.backward()
 
     def backward_G(self) -> None:
         # Fake the discriminator
@@ -199,12 +195,12 @@ class Pix2PixHD(BaseModel, nn.Module):
             loss_G_VGG = self.criterionVGG(self.fake_image, self.real_image)
         
         self.loss_G = loss_G_GAN + loss_G_GAN_Feat * self.opt.lambda_feat + loss_G_VGG * self.opt.lambda_feat
-        # if self.opt.fp16:
-        #     with amp.scale_loss(self.loss_G, self.optimizer_G) as scaled_loss:
-        #         scaled_loss.backward()
-        # else:
-        #     self.loss_G.backward()
-        self.loss_G.backward()
+        if self.opt.fp16:
+            with amp.scale_loss(self.loss_G, self.optimizer_G) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            self.loss_G.backward()
+        # self.loss_G.backward()
 
     def load(self):
         pretrained_path = '' if not self.isTrain else self.opt.load_pretrain
@@ -219,16 +215,6 @@ class Pix2PixHD(BaseModel, nn.Module):
         self.save_network(self.netD, 'D', which_epoch)
         if self.gen_features:
             self.save_network(self.netE, 'E', which_epoch)
-
-    # def update_learning_rate(self):
-    #     lrd = self.opt.lr / self.opt.lr_decay_epochs
-    #     lr = self.old_lr - lrd        
-    #     for param_group in self.optimizer_D.param_groups:
-    #         param_group['lr'] = lr
-    #     for param_group in self.optimizer_G.param_groups:
-    #         param_group['lr'] = lr
-    #     self.old_lr = lr
-    #     return self.old_lr, lr
 
     def update_fixed_params(self):
         # after fixing the global generator for a number of iterations, start finetuning it
@@ -272,14 +258,17 @@ class Pix2PixHD(BaseModel, nn.Module):
         return input_label, real_image, inst_map, feat_map
 
     def get_edges(self, t):
-        edge = torch.cuda.ByteTensor(t.size()).zero_()
+        edge = torch.ByteTensor(t.size()).zero_()
         edge[:,:,:,1:] = edge[:,:,:,1:] | (t[:,:,:,1:] != t[:,:,:,:-1])
         edge[:,:,:,:-1] = edge[:,:,:,:-1] | (t[:,:,:,1:] != t[:,:,:,:-1])
         edge[:,:,1:,:] = edge[:,:,1:,:] | (t[:,:,1:,:] != t[:,:,:-1,:])
         edge[:,:,:-1,:] = edge[:,:,:-1,:] | (t[:,:,1:,:] != t[:,:,:-1,:])
         if self.opt.data_type==16:
             return edge.half()
+        edge = edge.to(self.device)
         return edge.float()
+
+    #--------------------------------------------------------------------------#
 
     def inference(self, label, inst, image=None):
         # Encode Inputs        

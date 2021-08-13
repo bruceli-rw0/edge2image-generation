@@ -16,7 +16,6 @@ class Pix2Pix(BaseModel, nn.Module):
 
     pix2pix paper: https://arxiv.org/pdf/1611.07004.pdf
     """
-
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
         """
