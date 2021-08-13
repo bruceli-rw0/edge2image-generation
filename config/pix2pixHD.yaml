@@ -1,16 +1,21 @@
 --------- model parameters ---------
-model: pix2pix
+model: pix2pixHD
 input_nc: 3
+label_nc: 0
 output_nc: 3
-netG: unet_256
+netG: local
 ngf: 64
-netD: basic
+num_D: 3
 ndf: 64
-gan_mode: vanilla
-norm: batch
+norm: instance
 init_type: kaiming
 init_gain: 0.02
 use_dropout: True
+
+-------- instance-wise features --------
+use_instance_map: False
+use_instance_feat: False
+use_label_feat: False
 
 --------- training parameters ---------
 lr: 0.0002
@@ -21,7 +26,7 @@ lr_policy: linear
 lr_decay_iters: 50
 
 --------- dataset parameters ---------
-batch_size: 128
+batch_size: 96
 direction: AtoB
 pool_size: 0
 

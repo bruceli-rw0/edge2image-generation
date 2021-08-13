@@ -12,15 +12,28 @@ setup:
 test:
 	clear
 	./env/bin/python3 -m generator \
-		--config config/pix2pix.yaml \
-		--model pix2pix \
-		--init_type kaiming \
-		--use_dropout \
+		--config config/pix2pixHD.yaml \
 		--do_train \
 		--do_eval \
-		--n_epochs 2 \
 		--num_train 3 \
 		--num_eval 3 \
+
+.PHONY: test-all
+test-all:
+	clear
+	./env/bin/python3 -m generator \
+		--config config/pix2pix.yaml \
+		--do_train \
+		--do_eval \
+		--num_train 3 \
+		--num_eval 3
+	
+	./env/bin/python3 -m generator \
+		--config config/pix2pixHD.yaml \
+		--do_train \
+		--do_eval \
+		--num_train 3 \
+		--num_eval 3
 
 .PHONY: download
 download:

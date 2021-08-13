@@ -7,11 +7,12 @@ logger = logging.getLogger(__name__)
 import torch
 from torch.utils import data
 from .datasets import CustomDataset
-from .models.pix2pix_model import Pix2Pix
+from .models import initialize_model
 from .metrics import Metrics
-from .visualizer import save_generations
+from .util.helper import *
+from .util.visualizer import save_generations
 
-def setup_logging(args):
+def setup_logging(args) -> None:
     if args.log_dir not in os.listdir(args.root_dir):
             os.mkdir(os.path.join(args.root_dir, args.log_dir))
     
@@ -28,25 +29,6 @@ def setup_logging(args):
         handlers=handlers
     )
 
-def log_settings(args):
-    logger.info(f"GPU: {args.gpu_ids}")
-    logger.info(f"Model: {args.model}")
-    logger.info(f"Generator: {args.netG}")
-    logger.info(f"Discriminator: {args.netD}")
-    logger.info(f"Normalization: {args.norm}")
-    logger.info(f"Weight initialization: {args.init_type}")
-    logger.info(f"Using dropout: {args.use_dropout}")
-    logger.info(f"Batch size: {args.batch_size}")
-    logger.info(f"Number of epochs: {args.n_epochs}")
-    logger.info(f"Number of epochs to decay to 0: {args.n_epochs_decay}")
-    logger.info(f"Learning rate: {args.lr}")
-    logger.info(f"Momentum: {args.beta1}")
-    logger.info(f"GAN objective: {args.gan_mode}")
-    logger.info(f"Learning rate policy: {args.lr_policy}")
-    logger.info(f"Learning rate decay iterations: {args.lr_decay_iters}")
-    logger.info(f"Number of training: {args.num_train}")
-    logger.info(f"Number of evaluation: {args.num_eval}")
-
 def inference(args, dataloader, model, e: str) -> None:
     logger.info(f"Begin evaluation - epoch {e} ...")
 
@@ -55,7 +37,7 @@ def inference(args, dataloader, model, e: str) -> None:
     model.eval()
     with torch.no_grad():
         for inputs in epoch_iterator:
-            fake = model(inputs)
+            fake = model(inputs['A'], inputs['B'])
             edges.append((inputs['A'].squeeze().numpy().transpose(1,2,0)+1) / 2)
             reals.append((inputs['B'].squeeze().numpy().transpose(1,2,0)+1) / 2)
             fakes.append((fake.detach().cpu().squeeze().numpy().transpose(1,2,0)+1) / 2)
@@ -69,7 +51,7 @@ def train(args, dataloader, model, metrics, e: str) -> None:
     epoch_iterator = tqdm(dataloader, desc="Iteration", position=0, leave=True)
     model.train()
     for inputs in epoch_iterator:
-        _ = model(inputs)
+        _ = model(inputs['A'], inputs['B'])
         model.optimize_parameters()
         metrics.update(model.loss_G.item(), model.loss_D.item())
     
@@ -95,18 +77,18 @@ def run_model(args) -> None:
     dataloader["eval"] = data.DataLoader(dataset["eval"], batch_size=1, shuffle=False)
 
     # define model
-    model = Pix2Pix(args)
+    model = initialize_model(args)
     model.setup(args)
 
     # define metrics for storing running stats
     metrics = dict()
     metrics['train'] = Metrics(len(dataset["train"]))
 
-    log_settings(args)
+    log_settings(args, logger)
     if args.do_train:
-        if args.checkpoint_dir not in os.listdir(args.root_dir):
-            os.mkdir(os.path.join(args.root_dir, args.checkpoint_dir))
-        os.mkdir(os.path.join(args.root_dir, args.checkpoint_dir, f'{args.model}{args.model_id}'))
+        if args.checkpoints_dir not in os.listdir(args.root_dir):
+            os.mkdir(os.path.join(args.root_dir, args.checkpoints_dir))
+        os.mkdir(os.path.join(args.root_dir, args.checkpoints_dir, f'{args.model}{args.model_id}'))
 
         if args.metrics_dir not in os.listdir(args.root_dir):
             os.mkdir(os.path.join(args.root_dir, args.metrics_dir))
@@ -121,16 +103,8 @@ def run_model(args) -> None:
             logger.info(f'learning rate {lr_old:.7f} -> {lr_new:.7f}')
 
             # save epoch checkpoint
-            torch.save(
-                model.state_dict(), 
-                os.path.join(args.root_dir, args.checkpoint_dir, f'{args.model}{args.model_id}', f'state_dict-{e}.pth')
-            )
+            model.save(e)
 
         if args.do_eval:
             # perform evaluation
             inference(args, dataloader["eval"], model, str(e))
-
-        # model.load_state_dict(
-        #     torch.load(
-        #         os.path.join(args.checkpoint_dir, f'{args.model}{args.model_id}', f'state_dict-{e}.pth')
-        #     ))

@@ -53,7 +53,7 @@ class BaseModel(ABC):
         # get device name: CPU or GPU
         self.device = torch.device(f'cuda:{self.gpu_ids[0]}') if self.gpu_ids else torch.device('cpu')
         # save all the checkpoints to save_dir
-        self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
+        self.save_dir = os.path.join(opt.root_dir, opt.checkpoints_dir, f'{opt.model}{opt.model_id}')
         # with [scale_width], input images might have different sizes, which hurts 
         # the performance of cudnn.benchmark.
         if opt.preprocess != 'scale_width':
@@ -66,16 +66,6 @@ class BaseModel(ABC):
         self.image_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
     
-    @abstractmethod
-    def forward(self):
-        """Run forward pass; called by both functions <optimize_parameters> and <test>."""
-        pass
-
-    @abstractmethod
-    def optimize_parameters(self):
-        """Calculate losses, gradients, and update network weights; called in every training iteration"""
-        pass
-
     def setup(self, opt):
         """Load and print networks; create schedulers
 
@@ -89,19 +79,15 @@ class BaseModel(ABC):
             self.load_networks(load_suffix)
         # self.print_networks(opt.verbose)
 
-    def update_learning_rate(self):
-        """
-        Update learning rates for all the networks; called at the end of every epoch
-        """
-        old_lr = self.optimizers[0].param_groups[0]['lr']
-        for scheduler in self.schedulers:
-            if self.opt.lr_policy == 'plateau':
-                scheduler.step(self.metric)
-            else:
-                scheduler.step()
+    @abstractmethod
+    def forward(self):
+        """Run forward pass; called by both functions <optimize_parameters> and <test>."""
+        pass
 
-        lr = self.optimizers[0].param_groups[0]['lr']
-        return old_lr, lr
+    @abstractmethod
+    def optimize_parameters(self):
+        """Calculate losses, gradients, and update network weights; called in every training iteration"""
+        pass
 
     def set_requires_grad(self, nets, requires_grad=False):
         """
@@ -118,21 +104,18 @@ class BaseModel(ABC):
                 for param in net.parameters():
                     param.requires_grad = requires_grad
 
-    def __patch_instance_norm_state_dict(self, state_dict, module, keys, i=0):
+    def update_learning_rate(self):
         """
-        Fix InstanceNorm checkpoints incompatibility (prior to 0.4)
+        Update learning rates for all the networks; called at the end of every epoch
         """
-        key = keys[i]
-        if i + 1 == len(keys):  # at the end, pointing to a parameter/buffer
-            if module.__class__.__name__.startswith('InstanceNorm') and \
-                    (key == 'running_mean' or key == 'running_var'):
-                if getattr(module, key) is None:
-                    state_dict.pop('.'.join(keys))
-            if module.__class__.__name__.startswith('InstanceNorm') and \
-               (key == 'num_batches_tracked'):
-                state_dict.pop('.'.join(keys))
-        else:
-            self.__patch_instance_norm_state_dict(state_dict, getattr(module, key), keys, i + 1)
+        old_lr = self.optimizers[0].param_groups[0]['lr']
+        for scheduler in self.schedulers:
+            if self.opt.lr_policy == 'plateau':
+                scheduler.step(self.metric)
+            else:
+                scheduler.step()
+        lr = self.optimizers[0].param_groups[0]['lr']
+        return old_lr, lr
 
     def load_networks(self, epoch):
         """
@@ -160,24 +143,34 @@ class BaseModel(ABC):
                     self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
                 net.load_state_dict(state_dict)
 
-    def save_networks(self, epoch):
+    def save_network(self, network, net_label, which_epoch):
         """
         Save all the networks to the disk.
 
         Parameters:
-            epoch (int) -- current epoch; used in the file name '%s_net_%s.pth' % (epoch, name)
+            which_epoch (int) -- current epoch; used in the file name '%s_net_%s.pth' % (epoch, name)
         """
-        for name in self.model_names:
-            if isinstance(name, str):
-                save_filename = '%s_net_%s.pth' % (epoch, name)
-                save_path = os.path.join(self.save_dir, save_filename)
-                net = getattr(self, 'net' + name)
+        save_filename = '%s_net_%s.pth' % (which_epoch, net_label)
+        save_path = os.path.join(self.save_dir, save_filename)
+        torch.save(network.cpu().state_dict(), save_path)
+        if len(self.gpu_ids) > 0 and torch.cuda.is_available():
+            network.cuda(self.gpu_ids[0])
 
-                if len(self.gpu_ids) > 0 and torch.cuda.is_available():
-                    torch.save(net.module.cpu().state_dict(), save_path)
-                    net.cuda(self.gpu_ids[0])
-                else:
-                    torch.save(net.cpu().state_dict(), save_path)
+    def __patch_instance_norm_state_dict(self, state_dict, module, keys, i=0):
+        """
+        Fix InstanceNorm checkpoints incompatibility (prior to 0.4)
+        """
+        key = keys[i]
+        if i + 1 == len(keys):  # at the end, pointing to a parameter/buffer
+            if module.__class__.__name__.startswith('InstanceNorm') and \
+                    (key == 'running_mean' or key == 'running_var'):
+                if getattr(module, key) is None:
+                    state_dict.pop('.'.join(keys))
+            if module.__class__.__name__.startswith('InstanceNorm') and \
+               (key == 'num_batches_tracked'):
+                state_dict.pop('.'.join(keys))
+        else:
+            self.__patch_instance_norm_state_dict(state_dict, getattr(module, key), keys, i + 1)
 
     # @abstractmethod
     # def set_input(self, input):
