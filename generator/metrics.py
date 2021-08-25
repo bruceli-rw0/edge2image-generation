@@ -17,13 +17,10 @@ class Metrics:
         self.epoch_loss_D.append(loss_D)
 
     def get_epoch_loss(self):
-        # return np.sum(self.epoch_loss_G) / self.datasize, np.sum(self.epoch_loss_D) / self.datasize
         return np.sum(self.epoch_loss_G), np.sum(self.epoch_loss_D)
 
     def new_epoch(self):
         # save epoch average loss per sample
-        # self.running_loss_G.append(np.sum(self.epoch_loss_G) / self.datasize)
-        # self.running_loss_D.append(np.sum(self.epoch_loss_D) / self.datasize)
         self.running_loss_G.append(np.sum(self.epoch_loss_G))
         self.running_loss_D.append(np.sum(self.epoch_loss_D))
 
@@ -32,8 +29,8 @@ class Metrics:
         self.epoch_loss_D.clear()
 
     def save(self, args):
-        with open(os.path.join(args.root_dir, args.metrics_dir, f'metrics{args.model_id}.pkl'), 'wb') as f:
-            pickle.dump({
-                'loss_G': self.running_loss_G,
-                'loss_D': self.running_loss_D
-            }, f)
+        pickle.dump({
+            'loss_G': self.running_loss_G,
+            'loss_D': self.running_loss_D,
+            'datasize': self.datasize
+        }, open(os.path.join(args.root_dir, args.metrics_dir, f'metrics{args.model_id}.pkl'), 'wb'))

@@ -36,7 +36,8 @@ class BaseOptions():
         
         self.parser.add('--do_train', action='store_true', help='whether train model.')
         self.parser.add('--do_eval', action='store_true', help='whether to generate images after each training epoch.')
-        
+        self.parser.add('--model_id', type=str, default='', help='the unique identification of the model')
+
         self.parser.add('--num_train', type=int, default=-1, help='Number of images used for training, -1 means use all.')
         self.parser.add('--num_eval', type=int, default=-1, help='Number of images used for evalutation, -1 means use all.')
         self.parser.add("--train_folder", type=str, default=["datasets/edges2shoes/train"], nargs='+', help='Directory of training data.')
@@ -85,12 +86,12 @@ class BaseOptions():
         self.parser.add('--max_dataset_size', type=int, default=float("inf"), help='Maximum number of samples allowed per dataset. If the dataset directory contains more than max_dataset_size, only a subset is loaded.')
         
         # network saving and loading parameters
-        self.parser.add('--save_latest_freq', type=int, default=5000, help='frequency of saving the latest results')
-        self.parser.add('--save_epoch_freq', type=int, default=5, help='frequency of saving checkpoints at the end of epochs')
-        self.parser.add('--save_by_iter', action='store_true', help='whether saves model by iteration')
+        # self.parser.add('--save_latest_freq', type=int, default=5000, help='frequency of saving the latest results')
+        self.parser.add('--save_epoch_freq', type=int, default=4, help='frequency of saving checkpoints at the end of epochs')
+        # self.parser.add('--save_by_iter', action='store_true', help='whether saves model by iteration')
         self.parser.add('--continue_train', action='store_true', help='continue training: load the latest model')
-        self.parser.add('--epoch_count', type=int, default=1, help='the starting epoch count, we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>, ...')
-        self.parser.add('--phase', type=str, default='train', help='train, val, test, etc')
+        # self.parser.add('--epoch_count', type=int, default=1, help='the starting epoch count, we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>, ...')
+        # self.parser.add('--phase', type=str, default='train', help='train, val, test, etc')
         
         # visdom and HTML visualization parameters
         # self.parser.add('--display_winsize', type=int, default=256, help='display window size for both visdom and HTML')

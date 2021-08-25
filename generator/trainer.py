@@ -53,7 +53,7 @@ def train(args, dataloader, model, metrics, e: str) -> None:
     for inputs in epoch_iterator:
         _ = model(inputs['A'], inputs['B'])
         model.optimize_parameters()
-        metrics.update(model.loss_G.item(), model.loss_D.item())
+        metrics.update(model.loss_G, model.loss_D)
     
     loss_G, loss_D = metrics.get_epoch_loss()
     logger.info(f"Epoch {e}...")
@@ -103,7 +103,8 @@ def run_model(args) -> None:
             logger.info(f'learning rate {lr_old:.7f} -> {lr_new:.7f}')
 
             # save epoch checkpoint
-            model.save(e)
+            if e % args.save_epoch_freq:
+                model.save(e)
 
         if args.do_eval:
             # perform evaluation

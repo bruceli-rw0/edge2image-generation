@@ -5,5 +5,5 @@ vscode.code-workspace
 _checkpoints/*
 datasets/*
 env/*
-fourthbrain/*
-references/*
+__fourthbrain/*
+__references/*
