@@ -34,6 +34,18 @@ Run the following command to perform a test training and evaluation run.
 make test
 ```
 
+### Run Web Application
+Run the following to download pretrained model
+```bash
+make deploy
+```
+
+Run the following to run the server
+```bash
+./env/bin/python3 app.py
+```
+and open `http://127.0.0.1:5000/` in the browser.
+
 ## Resource
 ### Models
 * [Official PyTorch Pix2Pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix)
