@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="{{ url_for('static',filename='drawingboard.min.js') }}"></script>
+        <link href="{{ url_for('static',filename='drawingboard.min.css') }}" rel=stylesheet>
+
+        <style>
+        .board {
+            margin: 0 auto;
+            width: 50%;
+            height: 300px;
+        }
+
+        #default-board {
+            width: 512px;
+            height: 512px;
+        }
+
+        .transform-board {
+            width: 512px;
+            height: 512px;
+        }
+
+        .center {
+            width:100%;
+            display: flex;
+            justify-content: center;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="board drawing-board" id="default-board"></div>
+
+        <!-- button to perform edge2pic transformation -->
+        <div class="center">
+            <button style="box-sizing: border-box; border-radius: 4px; background: #02B3E4; border: none; height: 44px; padding: 0 25px; margin: 25px; color: white; cursor: pointer; font-family: Open Sans,sans-serif; display: inline-block; border: none; font-size: 12px; letter-spacing: 1px; font-weight: 600; text-transform: uppercase;"  id="transform-button">
+                Transform
+            </button>
+        </div>
+
+        <!-- dummy image element -->
+        <div class="center" id="prediction"><img></div>
+
+        <script src="{{ url_for('static',filename='main.js') }}"></script>
+    </body>
+</html>
