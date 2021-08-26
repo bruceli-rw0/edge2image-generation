@@ -6,6 +6,7 @@ Link: https://www.pyimagesearch.com/2019/03/04/holistically-nested-edge-detectio
 """
 
 import cv2
+import torch
 
 class CropLayer:
     def __init__(self, params, blobs):
@@ -45,6 +46,9 @@ class HEDModel:
             prototxt='image_processing/deploy.prototxt',
             caffeModel='image_processing/hed_pretrained_bsds.caffemodel'
         )
+        if torch.cuda.is_available():
+            self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+            self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
     def compute_hed(self, image):
         H, W, _ = image.shape
